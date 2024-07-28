@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+   
+     ul li{
+       font-family: font-sans;
+     text-align: center;
+     }
+     .button{
+        color: #183153;
+    
+        border: none;
+        background-color:transparent;
+        font-family: sans-serif;
+        font-size: 20px;
+        cursor: pointer;
+    }
