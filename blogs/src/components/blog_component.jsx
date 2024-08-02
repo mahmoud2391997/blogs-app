@@ -4,8 +4,8 @@ import PaggingBar from "./pagging";
 import SearchBar from "./SearchBar";
 import Warning from "./DeleteItem";
 import isEqual from "lodash/isEqual";
-import { Await } from "react-router-dom";
 import AddBlogForm from "./AddBlogForm";
+import { before } from "lodash";
 function BlogComponent({ user }) {
   const categories = [
     "general",
@@ -19,8 +19,6 @@ function BlogComponent({ user }) {
   const [addedBlog, setAddedBlog] = useState(null);
   const [editingBlog, setEditingBlog] = useState(null);
   const [addedBlogs, setAddedBlogs] = useState([]);
-  const [deletedBlogs, setDeletedBlogs] = useState(null);
-  const [editedBlogs, setEditBlogs] = useState(null);
   const [authedData, setAuthedData] = useState([]);
   const [blogToDelete, setBlogToDelete] = useState(null);
   const [activeButton, setActiveButton] = useState(0);
@@ -60,7 +58,7 @@ function BlogComponent({ user }) {
     addBlog.classList.add("hidden");
     addBlog.classList.remove("flex");
     axios
-      .post("https://maroon-foul-pixie.glitch.me//api/addedBlogs", addedBlog, {
+      .post("http://localhost:3000/api/addedBlogs", addedBlog, {
         Authorization: "dvfvsdfv",
       })
       .then((response) => {
@@ -76,7 +74,7 @@ function BlogComponent({ user }) {
 
     getAdded();
   }
-  function onClickDelete(blog) {
+  function onClickDelete() {
     {
       let warning = document.getElementById("delete-modal");
       warning.classList.remove("hidden");
@@ -107,14 +105,14 @@ function BlogComponent({ user }) {
     let index = authedData.findIndex((mainBlog) => isEqual(mainBlog, blog));
     authedData.splice(index, 1);
     setAuthedData(authedData);
+    console.log(blog.id);
     axios
-      .post("https://maroon-foul-pixie.glitch.me//api/deletedBlogs", blog, {
+      .delete(`http://localhost:3000/api/addedBlogs/${blog.id}`, {
         Authorization: "dvfvsdfv",
       })
       .then((response) => {
         // Handle success
-        setDeletedBlogs(response.data.blogs);
-        console.log(response.data); // The response data from the server
+        console.log(response.data);
         location.reload();
       })
       .catch((error) => {
@@ -127,7 +125,6 @@ function BlogComponent({ user }) {
       deleteModel.classList.add("hidden");
       deleteModel.classList.remove("flex");
     }
-    console.log(deletedBlogs);
     setAuthedData(authedData.filter((ele) => ele != blog));
   }
   function handleClick(params) {
@@ -142,9 +139,7 @@ function BlogComponent({ user }) {
     setSearchedData(filtered);
     console.log(filtered);
   }
-  useEffect(() => {
-    getDeletedBlogs();
-  }, []);
+
   useEffect(() => {
     axios
       .get(
@@ -157,44 +152,20 @@ function BlogComponent({ user }) {
           : (blogs = [...data.articles]);
         console.log(addedBlogs);
         console.log(blogs);
-        if (editedBlogs) {
-          console.log(editedBlogs);
-          {
-            let editedArr = blogs.map((item) => {
-              const modifiedItem = editedBlogs.blogs.find((mod) =>
-                isEqual(mod.oldBlog, item)
-              );
-              console.log(modifiedItem);
-              return modifiedItem ? modifiedItem.newBlog : item;
-            });
-            console.log(editedArr);
 
-            if (deletedBlogs) {
-              console.log(deletedBlogs);
+        console.log("Df");
+        setData(blogs);
+        setAuthedData(blogs);
+        setSearchedData(blogs);
+        setPageData(blogs.slice(0, blogsPerPage));
+        setPages(Math.ceil(blogs.length / blogsPerPage));
 
-              editedArr = editedArr.filter((blog) => {
-                for (let i = 0; i < deletedBlogs.length; i++) {
-                  if (isEqual(blog, deletedBlogs[i])) {
-                    return false;
-                  }
-                }
-                return true;
-              });
-              console.log("Df");
-              setData(editedArr);
-              setAuthedData(editedArr);
-              setSearchedData(editedArr);
-              setPageData(editedArr.slice(0, blogsPerPage));
-              setPages(Math.ceil(editedArr.length / blogsPerPage));
-            }
-          }
-
-          setResetString(!resetSearch);
-          setCurrentPage(1);
-        }
+        setResetString(!resetSearch);
+        setCurrentPage(1);
       });
-  }, [currentCategory, deletedBlogs, editedBlogs, addedBlogs, addedBlog]);
-  function editBlog(blog) {
+  }, [currentCategory, addedBlogs, addedBlog]);
+  async function editBlog(blog) {
+    console.log("EDIT");
     let editedBlog = {
       source: { name: document.getElementById("edit-source").value },
       urlToImage: document.getElementById("edit-image").value,
@@ -202,6 +173,7 @@ function BlogComponent({ user }) {
       puslishedAt: document.getElementById("edit-pub-at").value,
       author: document.getElementById("edit-author").value,
       content: document.getElementById("edit-content").value,
+      user: blog.user,
     };
     {
       let edit = document.getElementById("edit");
@@ -211,73 +183,21 @@ function BlogComponent({ user }) {
     }
     setAddedBlog(blog);
     authedData.push(blog);
-    let modifiedItem;
-    editedBlogs
-      ? (modifiedItem = editedBlogs.blogs.find((mod) =>
-          isEqual(mod.newBlog.url, blog.url)
-        ))
-      : null;
-    console.log(modifiedItem);
 
-    let editIndex = authedData.findIndex((mainBlog) => isEqual(blog, mainBlog));
-    authedData[editIndex] = editedBlog;
-    console.log(editedBlog);
-    console.log(blog);
-    setAuthedData(authedData);
-
-    let body;
-
-    if (modifiedItem) {
-      body = { oldBlog: modifiedItem.oldBlog, newBlog: editedBlog };
-      console.log(body);
-      axios
-        .put("https://maroon-foul-pixie.glitch.me//api/editedBlogs", body, {
-          Authorization: "dvfvsdfv",
-        })
-        .then((response) => {
-          // Handle success
-          setEditBlogs(response.data);
-          console.log(response.data); // The response data from the server
-        })
-        .catch((error) => {
-          // Handle error
-          console.error(error);
-        });
-      getEdited();
-    } else {
-      body = { oldBlog: blog, newBlog: editedBlog };
-      axios
-        .post("https://maroon-foul-pixie.glitch.me//api/editedBlogs", body, {
-          Authorization: "dvfvsdfv",
-        })
-        .then((response) => {
-          // Handle success
-
-          setEditBlogs(response.data);
-          console.log(response.data); // The response data from the server
-        })
-        .catch((error) => {
-          // Handle error
-          console.error(error);
-        });
-      getEdited();
-      location.reload();
-    }
-  }
-  async function getDeletedBlogs() {
-    axios
-      .get("https://maroon-foul-pixie.glitch.me//api/deletedBlogs", {
+    await axios
+      .put(`http://localhost:3000/api/addedBlogs/${blog.id}`, editedBlog, {
         Authorization: "dvfvsdfv",
       })
       .then((response) => {
         // Handle success
-        setDeletedBlogs(response.data.blogs);
+        console.log(response.data); // The response data from the server
       })
       .catch((error) => {
         // Handle error
         console.error(error);
       });
-    console.log(deletedBlogs);
+
+    getAdded();
   }
 
   useEffect(() => {
@@ -287,7 +207,7 @@ function BlogComponent({ user }) {
 
   useEffect(() => {
     axios
-      .get("https://maroon-foul-pixie.glitch.me//api/addedBlogs", {
+      .get("http://localhost:3000/api/addedBlogs", {
         Authorization: "dvfvsdfv",
       })
       .then((response) => {
@@ -310,39 +230,11 @@ function BlogComponent({ user }) {
         // Handle error
         console.error(error);
       });
-    axios
-      .get("https://maroon-foul-pixie.glitch.me//api/editedBlogs", {
-        Authorization: "dvfvsdfv",
-      })
-      .then((response) => {
-        // Handle success
-        setEditBlogs(response.data);
-        console.log(response.data); // The response data from the server
-      })
-      .catch((error) => {
-        // Handle error
-        console.error(error);
-      });
   }, []);
 
-  function getEdited() {
-    axios
-      .get("https://maroon-foul-pixie.glitch.me//api/editedBlogs", {
-        Authorization: "dvfvsdfv",
-      })
-      .then((response) => {
-        // Handle success
-        setEditBlogs(response.data);
-        console.log(response.data); // The response data from the server
-      })
-      .catch((error) => {
-        // Handle error
-        console.error(error);
-      });
-  }
   function getAdded() {
     axios
-      .get("https://maroon-foul-pixie.glitch.me//api/addedBlogs", {
+      .get("http://localhost:3000/api/addedBlogs", {
         Authorization: "dvfvsdfv",
       })
       .then((response) => {
@@ -353,7 +245,6 @@ function BlogComponent({ user }) {
           ? (blogs = [...authedData, ...response.data.blogs])
           : null;
 
-        setEditBlogs({ blogs: blogs });
         setAuthedData(blogs);
         setData(blogs);
         setSearchedData(blogs);
@@ -473,5 +364,4 @@ function BlogComponent({ user }) {
     </div>
   );
 }
-
 export default BlogComponent;
