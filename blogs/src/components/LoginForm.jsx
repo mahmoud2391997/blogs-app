@@ -1,7 +1,9 @@
 import * as yup from "yup";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 export default function Login_Register_Form({ type, authorization }) {
   const [error, setError] = useState(null);
+  const [users, setUsers] = useState([]);
   // Create a validation schema
   const schema = yup.object().shape({
     email: yup.string().email("Invalid email").required("Email is required"),
@@ -11,7 +13,40 @@ export default function Login_Register_Form({ type, authorization }) {
       .required("Password is required"),
   });
   // function authriz(params) {
+  function setUser(params) {
+    axios
+      .post("http://localhost:3000/api/users", params, {
+        Authorization: "dvfvsdfv",
+      })
+      .then((response) => {
+        // Handle success
+        getUsers();
+        console.log(response.data); // The response data from the server
+      })
+      .catch((error) => {
+        // Handle error
+        console.error(error);
+      });
+  }
+  function getUsers() {
+    axios
+      .get("http://localhost:3000/api/users", {
+        Authorization: "dvfvsdfv",
+      })
+      .then((response) => {
+        // Handle success
 
+        setUsers(response.data); // The response data from the server
+        console.log(response.data); // The response data from the server
+      })
+      .catch((error) => {
+        // Handle error
+        console.error(error);
+      });
+  }
+  useEffect(() => {
+    getUsers();
+  }, []);
   // }
   function submit(type) {
     {
@@ -23,47 +58,24 @@ export default function Login_Register_Form({ type, authorization }) {
         .then((valid) => {
           console.log(valid);
           if (type == "Sign In") {
-            const arr = JSON.parse(localStorage.getItem("users"));
-            console.log(arr);
-            console.log(
-              arr.find((user) => {
+            if (
+              users.users.find((user) => {
                 console.log(user.email);
                 console.log(email);
                 return user.email == email && user.password == password;
               })
-            );
-            if (
-              arr
-                ? arr.find(
-                    (user) => user.email == email && user.password == password
-                  )
-                : false
             ) {
               authorization("Sign In", email);
-              let list = arr.filter((user) => user.email != email);
-              list.push({ email, password, state: "logged in" });
-              localStorage.setItem("users", JSON.stringify(list));
             } else {
               setError("wrong email or password");
             }
           } else {
-            if (localStorage.getItem("users")) {
-              console.log("sdbvsgb");
-              const arr = JSON.parse(localStorage.getItem("users"));
-
-              if (arr.find((user) => user.email == email)) {
-                setError("The entered account is already registered");
-                return null;
-              } else {
-                arr.push({ email, password, state: "logged in" });
-                localStorage.setItem("users", JSON.stringify(arr));
-                authorization("Register", email);
-              }
+            if (users.users.find((user) => user.email == email)) {
+              setError("The entered account is already registered");
+              return null;
             } else {
-              localStorage.setItem(
-                "users",
-                JSON.stringify([{ email, password, state: "logged in" }])
-              );
+              let newUser = { email, password, state: "logged in" };
+              setUser(newUser);
               authorization("Register", email);
             }
           }

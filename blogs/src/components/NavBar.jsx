@@ -29,7 +29,7 @@ const NavBar = ({ onClick, addBlog, onLogout }) => {
         </div>
       </a>
 
-      <div class="  mb-7   w-[15%] h-6 mr-20 block">
+      <div class="  mb-7   w-[20%] h-6 mr-20 block">
         <ul
           className=" list-none flex justify-around items-center m-0 pl-0 w-full
          "

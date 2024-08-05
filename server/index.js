@@ -40,6 +40,38 @@ app.get("/api/users", (req, res) => {
     // Parse JSON data
   });
 });
+app.post("/api/users", (req, res) => {
+  // Read data from the JSON file
+  const newData = req.body;
+
+  fs.readFile(users, "utf8", (err, data) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: "Internal server error" });
+      return;
+    }
+    console.log(req.body);
+    console.log(data);
+    // Parse JSON data
+    const jsonData = JSON.parse(data);
+    console.log(jsonData);
+
+    // Append new data
+    jsonData.users.push({ id: jsonData.users.length + 1, ...newData });
+
+    console.log(jsonData);
+    // Write updated data back to the JSON file
+    // Parse JSON data
+    fs.writeFile(users, JSON.stringify(jsonData), (err) => {
+      if (err) {
+        console.error(err);
+        res.status(500).json({ error: "Internal server error" });
+        return;
+      }
+    });
+    res.json({ message: "Data saved successfully" });
+  });
+});
 
 app.delete("/api/addedBlogs/:id", (req, res) => {
   const resourceId = parseInt(req.params.id);
@@ -109,7 +141,7 @@ app.put("/api/addedBlogs/:id", (req, res) => {
 
 app.post("/api/addedBlogs", (req, res) => {
   const newData = req.body;
-
+  console.log(newData);
   // Read existing data from the JSON file
   fs.readFile(addedBlogs, "utf8", (err, data) => {
     if (err) {

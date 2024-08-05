@@ -36,8 +36,6 @@ function BlogComponent({ user }) {
     setCurrentCategory(categories[index]);
   };
   function handleAddButton() {
-    let users = JSON.parse(localStorage.getItem("users"));
-    let user = users.find((user) => user.state == "logged in");
     let addedBlog = {
       source: { name: document.getElementById("add-item-source").value },
       urlToImage: document.getElementById("add-item-image").value,
@@ -45,7 +43,7 @@ function BlogComponent({ user }) {
       puslishedAt: document.getElementById("add-item-pub-at").value,
       author: document.getElementById("add-item-author").value,
       content: document.getElementById("add-item-content").value,
-      user: user.email,
+      user: user,
     };
     setAddedBlog(addedBlog);
     document.getElementById("add-item-source").value = "";
@@ -310,7 +308,7 @@ function BlogComponent({ user }) {
                       </p>
                     </div>
                     {user ? (
-                      user.email == oneArticle.user ? (
+                      user == oneArticle.user ? (
                         <div className="flex-col justify-around h-full flex edit-delete ">
                           <button
                             onClick={() => {

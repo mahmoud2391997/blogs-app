@@ -7,22 +7,12 @@ import { useEffect, useState } from "react";
 import PaggingBar from "./components/pagging";
 import SearchBar from "./components/SearchBar";
 import Warning from "./components/DeleteItem";
-import axios from "axios";
 export function App() {
-  console.log(localStorage.getItem("users"));
-  let users = JSON.parse(localStorage.getItem("users"));
-  console.log(users);
   let authUser = sessionStorage.getItem("auth");
   console.log(authUser);
 
   //  sessionStorage.getItem("auth") ? null : .map((user)=> {user.state = "logged out"})
-  const [authorized, setAuthorized] = useState(
-    users
-      ? users.find((user) => user.email == authUser)
-        ? users.find((user) => user.email == authUser).state == "logged in"
-        : false
-      : false
-  );
+  const [authorized, setAuthorized] = useState(+authUser);
   function authorization(type, email) {
     sessionStorage.setItem("auth", email);
     setAuthorized(true);
@@ -62,17 +52,6 @@ export function App() {
   }
 
   function confirmLogout() {
-    let auth = JSON.parse(localStorage.getItem("users")).find(
-      (user) => user.email == sessionStorage.getItem("auth")
-    );
-    auth.state = "logged out";
-    console.log(auth);
-    let users = JSON.parse(localStorage.getItem("users")).filter(
-      (user) => user.email != auth.email
-    );
-    users.push(auth);
-    console.log(users);
-    localStorage.setItem("users", JSON.stringify(users));
     sessionStorage.removeItem("auth");
     setAuthorized(false);
     let logout = document.getElementById("logout-modal");
@@ -143,7 +122,7 @@ export function App() {
       });
     }
 
-    if (authorized) {
+    if (authUser) {
       let addBlog = document.getElementById("addBlog-btn");
       let editDelete = document.getElementsByClassName("edit-delete");
       let logOut = document.getElementById("logout-btn");
@@ -176,9 +155,7 @@ export function App() {
       <Login_Register_Form type={"Sign In"} authorization={authorization} />
       <Login_Register_Form type={"Register"} authorization={authorization} />
       <Warning type={"logout"} logOut={confirmLogout} />
-      <BlogComponent
-        user={users ? users.find((user) => user.state == "logged in") : null}
-      />
+      <BlogComponent user={authUser} />
     </div>
   );
 }
